@@ -1,0 +1,9 @@
+  # Plugin for a specific service
+  - selectors:
+      - $.services[?(@.name=="flights-service")]
+    overwrite: false
+    plugins:
+      - name: key-auth
+        config:
+          key_names:
+            - apikey
