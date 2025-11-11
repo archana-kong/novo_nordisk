@@ -46,12 +46,6 @@ jobs:
     - name: Get token from Terraform output
       id: get_token
       run: |
-        TOKEN=$(terraform output -raw global_cp_viewer_token_value)
-        echo "token=$TOKEN" >> $GITHUB_OUTPUT
-
-    - name: Get token from Terraform output
-      id: get_token
-      run: |
         terraform output -raw global_cp_viewer_token_value || echo "No outputs found!"
         TOKEN=$(terraform output -raw global_cp_viewer_token_value)
         echo "Token value: $TOKEN"        # prints in logs (unmasked)
