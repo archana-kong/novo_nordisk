@@ -2,11 +2,11 @@ variable "server_url" {
     description = "server_url"
         type = string
 }
-variable "system_account_access_token" {
-    description = "server_url"
+variable "personal_access_token" {
+    description = "PA Token"
         type = string
 }
 variable "environment" {
-    description = "server_url"
+    description = "environment"
         type = string
 }
