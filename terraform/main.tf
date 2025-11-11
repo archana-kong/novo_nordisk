@@ -220,10 +220,11 @@ resource "konnect_team_role" "platform_viewers_external_cp_viewer" {
 
 #Create a Control Plane vault to store the sytem account
 resource "konnect_gateway_vault" "github_vault" {
-  prefix = "github"
+  prefix = "my-env-vault"
   tags = []
   name = "konnect"
   config = {
+     prefix = "MY_SECRET_"
   }
   control_plane_id = konnect_gateway_control_plane.kongair_global_cp.id
 }
