@@ -223,9 +223,9 @@ resource "konnect_gateway_vault" "github_vault" {
   prefix = "my-env-vault"
   tags = []
   name = "konnect"
-  config = {
+  config = jsonencode({
      prefix = "MY_SECRET_"
-  }
+  })
   control_plane_id = konnect_gateway_control_plane.kongair_global_cp.id
 }
 
