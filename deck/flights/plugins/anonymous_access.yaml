@@ -1,0 +1,12 @@
+---
+_format_version: '3.0'
+add-plugins:
+- selectors:
+  - "$..services[*].routes[*][?(@.name == 'flights-service_health')]"
+  overwrite: false
+  plugins:
+    - name: key-auth
+      instance_name: flights-service_health_anonymous_access
+      config:
+        anonymous: anonymous
+      enabled: true
