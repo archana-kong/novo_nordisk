@@ -28,6 +28,14 @@ rules:
           maxItems: 1
           items:
             type: "string"
+  service-https-check:
+    description: "Ensure https usage in Kong GW Services"
+    given: $.services[*].protocol
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        match: "^http$"
   # allowed_plugins_service:
   #   description: "Ensure only allowed plugins are used on service"
   #   given: $.services[0].plugins[*]
