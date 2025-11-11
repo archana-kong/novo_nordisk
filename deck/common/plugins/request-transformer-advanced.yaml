@@ -1,0 +1,11 @@
+---
+_format_version: '3.0'
+add-plugins:
+- selectors:
+  - "$..services[*]"
+  plugins:
+    - name: request-transformer-advanced
+      config:
+        add:
+          headers:
+            - hello:world
