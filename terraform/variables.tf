@@ -2,7 +2,7 @@ variable "server_url" {
     description = "server_url"
         type = string
 }
-variable "personal_access_token" {
+variable "konnect_personal_access_token" {
     description = "PA Token"
         type = string
 }
