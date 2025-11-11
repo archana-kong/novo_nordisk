@@ -1,0 +1,10 @@
+---
+_format_version: "3.0"
+patches:
+- selectors:
+  - "$..services[0]"
+  values:
+    host: pie.dev
+    port: 443
+    path: /anything
+    protocol: https
