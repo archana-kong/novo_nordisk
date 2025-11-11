@@ -1,0 +1,8 @@
+add-plugins:
+  #  Global plugin (no selector needed)
+  - plugins:
+      - name: rate-limiting
+        config:
+          minute: 5
+          policy: local
+    overwrite: false
