@@ -176,10 +176,18 @@ jobs:
       #an artifact file will be committed only if it the Kong config differs from the previous one.
       - name: Check status of any files to be committed
         run: git status
-
+        
+      - name: Save deployment inputs for PR
+        run: |
+          echo "flag=${{ inputs.flag }}" > .github/deploy-inputs.env
+          echo "konnect_control_plane_name=${{ inputs.konnect_control_plane_name }}" >> .github/deploy-inputs.env
+          
       - name: Create PR to stage changes for the Kong Gateway in production
         uses: peter-evans/create-pull-request@v5
         with:
           title: "❗PRD❗: Staged changes for Kong Gateway PRD deployment"
           labels: "PRD,kong"
           body: "Merging this PR will result in the following changes deployed to PRD \n\n ```\n${{env.DIFF}}\n```"
+          commit-message: "chore: save deploy inputs"
+          add-paths: |
+            .github/deploy-inputs.env
