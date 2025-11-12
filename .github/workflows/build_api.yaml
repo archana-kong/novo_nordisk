@@ -152,11 +152,11 @@ jobs:
   
       - name: Validate connectivity to Konnect
         run: |
-          echo "CP:  '${{ inputs.konnect_control_plane_name  }}' addr: '${{ vars. KONNECT_SERVER_URL }}' token: '${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}' " \
+          echo "CP:  '${{ inputs.konnect_control_plane_name  }}' addr: '${{ env.KONNECT_SERVER_URL }}' token: '${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}' " \
           deck gateway ping \
           --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
           --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
-          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+          --konnect-addr ${{ env.KONNECT_SERVER_URL }}
 
       - name: deck diff
         id: deck-diff
@@ -170,7 +170,7 @@ jobs:
           .github/artifacts/${{ inputs.flag  }}-kong.yaml \
           --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
           --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
-          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}>> $GITHUB_ENV
+          --konnect-addr ${{ env.KONNECT_SERVER_URL }}>> $GITHUB_ENV
           echo "$EOF" >> $GITHUB_ENV
 
       #an artifact file will be committed only if it the Kong config differs from the previous one.
