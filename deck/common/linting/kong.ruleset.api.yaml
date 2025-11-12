@@ -35,7 +35,7 @@ rules:
     then:
       function: pattern
       functionOptions:
-        match: "^http$"
+        match: "^https$"
   # allowed_plugins_service:
   #   description: "Ensure only allowed plugins are used on service"
   #   given: $.services[0].plugins[*]
