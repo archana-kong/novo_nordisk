@@ -1,0 +1,107 @@
+_format_version: "3.0"
+consumers:
+- tags:
+  - flights
+  username: anonymous
+- keyauth_credentials:
+  - key: bob-key
+  tags:
+  - flights
+  username: bob
+services:
+- connect_timeout: 60000
+  host: pie.dev
+  name: flights-service
+  path: /anything
+  plugins:
+  - config:
+      cache_ttl: 300
+      content_type:
+      - text/plain
+      - application/json
+      redis:
+        cluster_addresses: null
+        sentinel_addresses: null
+      request_method:
+      - GET
+      - HEAD
+      response_code:
+      - 200
+      strategy: memory
+    name: proxy-cache-advanced
+    tags:
+    - flights
+  - config:
+      add:
+        headers:
+        - hello:world
+    name: request-transformer-advanced
+    tags:
+    - flights
+  port: 443
+  protocol: https
+  read_timeout: 60000
+  routes:
+  - methods:
+    - GET
+    name: flights-service_get-flight-by-number
+    paths:
+    - ~/flights/(?<flightnumber>[^#?/]+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flights
+  - methods:
+    - GET
+    name: flights-service_get-flight-details
+    paths:
+    - ~/flights/(?<flightnumber>[^#?/]+)/details$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flights
+  - methods:
+    - GET
+    name: flights-service_get-flights
+    paths:
+    - ~/flights$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 200
+    strip_path: false
+    tags:
+    - flights
+  - methods:
+    - GET
+    name: flights-service_health
+    paths:
+    - ~/health$
+    plugins:
+    - config:
+        anonymous: anonymous
+      enabled: true
+      instance_name: flights-service_health_anonymous_access
+      name: key-auth
+      tags:
+      - flights
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 200
+    strip_path: false
+    tags:
+    - flights
+  tags:
+  - flights
+  write_timeout: 60000
