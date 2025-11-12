@@ -4,16 +4,18 @@ on:
   push:
     branches:
       - main
-    workflow_dispatch:
-      inputs:
-        flag:
-          description: 'Select the flag to deploy(openapi file name)'
-          required: true
-          type: string
-        konnect_control_plane_name:
-          description: 'Name of the Konnect Control Plane to deploy to'
-          required: true
-          type: string
+    paths:
+      - '.github/workflows/deploy.yaml'
+  workflow_dispatch:
+    inputs:
+      flag:
+        description: 'Select the flag to deploy(openapi file name)'
+        required: true
+        type: string
+      konnect_control_plane_name:
+        description: 'Name of the Konnect Control Plane to deploy to'
+        required: true
+        type: string
   
         
 env:
@@ -21,7 +23,6 @@ env:
   GLOBAL_PATH: ${{ github.workspace }}/deck/global
   KONNECT_SERVER_URL: https://us.api.konghq.com
 
-  workflow_dispatch:
 
 jobs:
   deploy-api-to-kong:
