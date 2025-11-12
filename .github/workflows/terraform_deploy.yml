@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - '${{ github.workspace }}/terraform'
 env:
   TF_LOG: INFO
   TF_VAR_konnect_personal_access_token: ${{ secrets.KONNECT_PAT }}
