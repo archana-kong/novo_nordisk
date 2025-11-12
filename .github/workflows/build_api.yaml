@@ -1,0 +1,165 @@
+name: Build Flights API - Generate Kong Configs
+
+on:
+  workflow_dispatch:
+    inputs:
+      flag:
+        description: 'Select the flag to deploy(openapi file name)'
+        required: true
+        type: string
+      konnect_control_plane_name:
+          description: 'Name of the Konnect Control Plane to deploy to'
+          required: true
+          type: string
+env:
+  COMMON_PATH: ${{ github.workspace }}/deck/common
+  GLOBAL_PATH: ${{ github.workspace }}/deck/global
+  KONNECT_SERVER_URL: https://us.api.konghq.com
+
+
+
+jobs:
+  oas-to-kong:
+    name: Convert OAS to Kong configurations
+    runs-on: ubuntu-latest
+    env:
+      API_PATH: ${{ github.workspace }}/deck/${{ inputs.flag  }}
+      OPENAPI_FILE: $API_PATH/${{ inputs.flag  }}.yaml
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup deck
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: "1.40.3"
+          wrapper: false
+          
+      - name: Lint OpenAPI file
+        run: |
+          deck file lint -s ${{ env.OPENAPI_FILE }} \
+          ${{ env.COMMON_PATH }}/linting/openapi-ruleset.yaml; echo $?
+
+      - name: Generate Kong Declarative Configs from Spec
+        run: |
+          deck file openapi2kong --spec ${{ env.OPENAPI_FILE } \
+          --output-file ${{ env.API_PATH }/.generated/kong.yaml
+       
+      - name: Validate Initial Kong Configuration
+        run: |
+          deck file validate ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Add plugins
+        shell: bash
+        run: |
+          plugin_dirs=(
+            "${{ env.API_PATH }}/plugins"
+            "${{ env.COMMON_PATH }}/plugins"
+          )
+
+          for dir in "${plugin_dirs[@]}"; do
+            # Check if the directory exists and contains any YAML files
+            # If it does, add the plugins to the Kong configuration.
+            # If it does not, skip to the next directory.
+            if [ -d "$dir" ] && [ "$(ls -A $dir/*.yaml 2>/dev/null)" ]; then
+              echo "Adding plugins from $dir"
+              cat ${{ env.API_PATH }}/.generated/kong.yaml | deck file add-plugins $dir/*.yaml -o ${{ env.API_PATH }}/.generated/kong.yaml
+            else
+              echo "No plugins found in $dir"
+            fi
+          done
+
+      - name: Add API Specific Patch
+        run: |
+          cat ${{ env.API_PATH }}/.generated/kong.yaml | \
+          deck file patch ${{ env.API_PATH }}/patches/patches.yaml \
+          --output-file ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Add tags
+        run: |
+          cat ${{ env.API_PATH }}/.generated/kong.yaml | deck file add-tags ${{ inputs.flag  }} -o ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Render Kong Configuration
+        run: |
+          deck file render {{ env.API_PATH }}/.generated/kong.yaml --populate-env-vars  -o ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Lint Kong Configuration
+        run: |
+          deck file lint -s ${{ env.API_PATH }}/.generated/kong.yaml ${{ env.COMMON_PATH }}/linting/kong.ruleset.api.yaml
+
+      - name: Validate Resulting Kong Configuration
+        run: |
+          deck file validate ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Display Kong Configuration
+        run: |
+          echo "Kong Configuration:"
+          cat ${{ env.API_PATH }}/.generated/kong.yaml
+
+      
+
+      - name:  Merge configuration
+        run: |  
+          deck file merge ${{ env.API_PATH }}/.generated/kong.yaml \
+          ${{ env.COMMON_PATH }}/consumers.yaml \
+          --output-file ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Add tags
+        run: |
+          cat ${{ env.API_PATH }}/.generated/kong.yaml | \
+          deck file add-tags ${{ inputs.flag  }} \
+          --selector "$.services[*]" \
+          --selector "$.services[*].routes[*]"  \
+          --selector "$.consumers[*]" \
+          --output-file ${{ env.API_PATH }}/.generated/kong.yaml
+
+     
+
+      - name: Lint final file
+        run: |
+          deck file lint -s ${{ env.API_PATH }}/.generated/kong.yaml \
+          ${{ env.COMMON_PATH }}/linting/kong.ruleset.global.yaml; echo $?
+
+      - name: Validate decK state file locally
+        run: |
+          deck file validate ${{ env.API_PATH }}/.generated/kong.yaml
+
+      - name: Copy the final kong conf file to artifact directory
+        run: |
+          cp ${{ env.API_PATH }}/.generated/kong.yaml \
+             .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml
+
+      - name: Validate connectivity to Konnect
+        run: |
+          echo "CP:  '${{ inputs.konnect_control_plane_name  }}' addr: '${{ vars. KONNECT_SERVER_URL }}' token: '${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}' " \
+          deck gateway ping \
+          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
+          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+
+      - name: deck diff
+        id: deck-diff
+        # deck diff results in a multi-line output, which requires some
+        #  bash gymnastics to handle and pass through to the next job.
+        #  See: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "DIFF<<$EOF" >> $GITHUB_ENV
+          deck gateway diff --select-tag ${{ inputs.flag  }} \
+          .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml \
+          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
+          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}>> $GITHUB_ENV
+          echo "$EOF" >> $GITHUB_ENV
+
+      #an artifact file will be committed only if it the Kong config differs from the previous one.
+      - name: Check status of any files to be committed
+        run: git status
+
+      - name: Create PR to stage changes for the Kong Gateway in production
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "❗PRD❗: Staged changes for Kong Gateway PRD deployment"
+          labels: "PRD,kong"
+          body: "Merging this PR will result in the following changes deployed to PRD \n\n ```\n${{env.DIFF}}\n```"

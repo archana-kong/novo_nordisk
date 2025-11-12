@@ -1,0 +1,103 @@
+name: Deploy Flights API to Kong
+
+on:
+  push:
+    branches:
+      - main
+    workflow_dispatch:
+      inputs:
+        flag:
+          description: 'Select the flag to deploy(openapi file name)'
+          required: true
+          type: string
+        konnect_control_plane_name:
+          description: 'Name of the Konnect Control Plane to deploy to'
+          required: true
+          type: string
+  
+        
+env:
+  ARTIFACT_PATH:  .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml
+  GLOBAL_PATH: ${{ github.workspace }}/deck/global
+  KONNECT_SERVER_URL: https://us.api.konghq.com
+
+  workflow_dispatch:
+
+jobs:
+  deploy-api-to-kong:
+    name: Deploy flights API to Kong
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Check if file exists
+        id: check_file
+        run: |
+          if [ ! -f "${{vars.ARTIFACT_PATH}}" ]; then
+            echo "Artifact file not found! Stopping workflow.. Run the build workflow before deploy !"
+            exit 1  
+          else
+            echo "Artifact file exists! Continue syncing!"
+          fi
+
+      - name: Setup deck
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: '1.40.3'
+          wrapper: false
+
+      - name: Validate connectivity to Konnect
+        run: |
+          deck gateway ping \
+          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
+          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+
+      - name: Backup Current Kong Config
+        run: |
+          deck gateway dump \
+          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}  \
+          --konnect-addr ${{ vars. KONNECT_SERVER_URL }} \
+          -o backup/${{ inputs.konnect_control_plane_name  }}-kong-backup.yaml
+
+
+      - name: Apply Configuration to Kong
+        id: sync
+        run: |
+          deck gateway sync --select-tag ${{ inputs.flag  }} \
+           ${{vars.ARTIFACT_PATH}} \
+            --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+            --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}  \
+            --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+
+
+      - name: Rollback Config
+        if: steps.sync.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "Sync failed. Rolling back configuration..."
+          deck gateway sync backup/${{ inputs.konnect_control_plane_name  }}-kong-backup.yaml  \
+            --konnect-addr="${{ vars. KONNECT_SERVER_URL }}" \
+            --konnect-token="${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}" \
+            --konnect-control-plane-name="${{ inputs.konnect_control_plane_name  }}"
+
+      - name: Get a fresh backup
+        if: steps.sync.outcome == 'success'
+        shell: bash
+        run: |
+          deck gateway dump \
+            --yes \
+            --with-id \
+            --select-tag generated_by:deck \
+            --konnect-addr="${{ vars. KONNECT_SERVER_URL }}" \
+            --konnect-token="${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}" \
+            --konnect-control-plane-name="${{ inputs.konnect_control_plane_name }}" -o backup/${{ inputs.konnect_control_plane_name  }}-kong-rollback-backup.yaml
+
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kong-backup
+          path: backup/kong-current.yaml
