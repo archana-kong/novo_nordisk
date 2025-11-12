@@ -77,27 +77,27 @@ jobs:
       - name: Validate connectivity to Konnect
         run: |
           deck gateway ping \
-          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-control-plane-name ${{ env.konnect_control_plane_name  }} \
           --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
-          --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+          --konnect-addr ${{ env.KONNECT_SERVER_URL }}
 
       - name: Backup Current Kong Config
         run: |
           deck gateway dump \
-          --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+          --konnect-control-plane-name ${{ env.konnect_control_plane_name  }} \
           --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}  \
-          --konnect-addr ${{ vars. KONNECT_SERVER_URL }} \
-          -o backup/${{ inputs.konnect_control_plane_name  }}-kong-backup.yaml
+          --konnect-addr ${{ env.KONNECT_SERVER_URL }} \
+          -o .github/artifacts/backup/${{ env.konnect_control_plane_name  }}-kong-backup.yaml
 
 
       - name: Apply Configuration to Kong
         id: sync
         run: |
-          deck gateway sync --select-tag ${{ inputs.flag  }} \
+          deck gateway sync --select-tag ${{ env.flag  }} \
            ${{vars.ARTIFACT_PATH}} \
-            --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
+            --konnect-control-plane-name ${{ env.konnect_control_plane_name  }} \
             --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}  \
-            --konnect-addr ${{ vars. KONNECT_SERVER_URL }}
+            --konnect-addr ${{ env.KONNECT_SERVER_URL }}
 
 
       - name: Rollback Config
@@ -105,10 +105,10 @@ jobs:
         shell: bash
         run: |
           echo "Sync failed. Rolling back configuration..."
-          deck gateway sync backup/${{ inputs.konnect_control_plane_name  }}-kong-backup.yaml  \
-            --konnect-addr="${{ vars. KONNECT_SERVER_URL }}" \
+          deck gateway sync .github/artifacts/backup/${{ env.konnect_control_plane_name  }}-kong-backup.yaml  \
+            --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
             --konnect-token="${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}" \
-            --konnect-control-plane-name="${{ inputs.konnect_control_plane_name  }}"
+            --konnect-control-plane-name="${{ env.konnect_control_plane_name  }}"
 
       - name: Get a fresh backup
         if: steps.sync.outcome == 'success'
@@ -118,12 +118,12 @@ jobs:
             --yes \
             --with-id \
             --select-tag generated_by:deck \
-            --konnect-addr="${{ vars. KONNECT_SERVER_URL }}" \
+            --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
             --konnect-token="${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}" \
-            --konnect-control-plane-name="${{ inputs.konnect_control_plane_name }}" -o backup/${{ inputs.konnect_control_plane_name  }}-kong-rollback-backup.yaml
+            --konnect-control-plane-name="${{ env.konnect_control_plane_name }}" -o .github/artifacts/backup/${{ env.konnect_control_plane_name  }}-kong-rollback-backup.yaml
 
 
       - uses: actions/upload-artifact@v4
         with:
           name: kong-backup
-          path: backup/kong-current.yaml
+          path: .github/artifacts/backup/${{ env.konnect_control_plane_name  }}-kong-backup.yaml
