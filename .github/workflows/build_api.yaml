@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_PATH: ${{ github.workspace }}/deck/${{ inputs.flag  }}
-      OPENAPI_FILE: $API_PATH/${{ inputs.flag  }}.yaml
+      OPENAPI_FILE: $API_PATH/openapi/${{ inputs.flag  }}.yaml
 
     steps:
       - name: Checkout
