@@ -17,8 +17,8 @@ on:
           required: true
           type: string
 env:
-  COMMON_PATH: ${{ github.workspace }}/deck/common
-  GLOBAL_PATH: ${{ github.workspace }}/deck/global
+  COMMON_PATH: deck/common
+  GLOBAL_PATH: deck/global
   KONNECT_SERVER_URL: https://us.api.konghq.com
 
 
@@ -117,7 +117,7 @@ jobs:
       - name:  Merge configuration
         run: |  
           deck file merge ${{ env.API_PATH }}/.generated/kong.yaml \
-          ${{ env.COMMON_PATH }}/consumers.yaml \
+          ${{ env.COMMON_PATH }}/merge/*.yaml \
           --output-file ${{ env.API_PATH }}/.generated/kong.yaml
 
       - name: Add tags
@@ -144,7 +144,12 @@ jobs:
         run: |
           cp ${{ env.API_PATH }}/.generated/kong.yaml \
              .github/artifacts/${{ inputs.flag  }}-kong.yaml
-
+             
+      - name: Display Final Kong Configuration
+        run: |
+          echo "Kong Configuration Final:"
+          cat .github/artifacts/${{ inputs.flag  }}-kong.yaml
+  
       - name: Validate connectivity to Konnect
         run: |
           echo "CP:  '${{ inputs.konnect_control_plane_name  }}' addr: '${{ vars. KONNECT_SERVER_URL }}' token: '${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }}' " \
