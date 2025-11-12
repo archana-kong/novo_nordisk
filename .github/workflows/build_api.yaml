@@ -75,6 +75,22 @@ jobs:
             fi
           done
 
+      - name: Add patches
+        shell: bash
+        run: |
+          patches_dirs=(
+            "${{ env.API_PATH }}/patches"
+          )
+
+          for dir in "${patches_dirs[@]}"; do
+            if [ -d "$dir" ] && [ "$(ls -A $dir/*.yaml 2>/dev/null)" ]; then
+              echo "Adding patches from $dir"
+              cat ${{ env.API_PATH }}/.generated/kong.yaml | deck file patch $dir/*.yaml -o ${{ env.API_PATH }}/.generated/kong.yaml
+            else
+              echo "No patches found in $dir"
+            fi
+          done
+          
       - name: Add API Specific Patch
         run: |
           cat ${{ env.API_PATH }}/.generated/kong.yaml | \
