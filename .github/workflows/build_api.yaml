@@ -1,6 +1,11 @@
 name: Build Flights API - Generate Kong Configs
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ${{ github.workspace }}/deck'
   workflow_dispatch:
     inputs:
       flag:
@@ -43,8 +48,8 @@ jobs:
 
       - name: Generate Kong Declarative Configs from Spec
         run: |
-          deck file openapi2kong --spec ${{ env.OPENAPI_FILE } \
-          --output-file ${{ env.API_PATH }/.generated/kong.yaml
+          deck file openapi2kong --spec ${{ env.OPENAPI_FILE }} \
+          --output-file ${{ env.API_PATH }}/.generated/kong.yaml
        
       - name: Validate Initial Kong Configuration
         run: |
