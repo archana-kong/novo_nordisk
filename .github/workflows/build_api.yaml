@@ -28,7 +28,7 @@ jobs:
     name: Convert OAS to Kong configurations
     runs-on: ubuntu-latest
     env:
-      API_PATH: ${{ github.workspace }}/deck/${{ inputs.flag  }}
+      API_PATH: deck/${{ inputs.flag  }}
       OPENAPI_FILE: $API_PATH/openapi/${{ inputs.flag  }}.yaml
 
     steps:
