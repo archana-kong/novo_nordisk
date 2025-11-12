@@ -1,5 +1,5 @@
 consumers:
 - username: anonymous
-- username: bob
+- username: joe
   keyauth_credentials:
-  - key: bob-key
+  - key: joe-key
