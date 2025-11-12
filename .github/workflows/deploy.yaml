@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/deploy.yaml'
+      - '.github/artifacts/*.yaml'
   workflow_dispatch:
     inputs:
       flag:
@@ -19,7 +19,7 @@ on:
   
         
 env:
-  ARTIFACT_PATH:  .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml
+  ARTIFACT_PATH:  .github/artifacts/${{ inputs.flag  }}-kong.yaml
   GLOBAL_PATH: ${{ github.workspace }}/deck/global
   KONNECT_SERVER_URL: https://us.api.konghq.com
 
