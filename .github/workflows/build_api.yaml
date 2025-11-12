@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ${{ github.workspace }}/deck'
+      - 'deck/**'
   workflow_dispatch:
     inputs:
       flag:
@@ -133,7 +133,7 @@ jobs:
       - name: Copy the final kong conf file to artifact directory
         run: |
           cp ${{ env.API_PATH }}/.generated/kong.yaml \
-             .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml
+             .github/artifacts/${{ inputs.flag  }}-kong.yaml
 
       - name: Validate connectivity to Konnect
         run: |
@@ -152,7 +152,7 @@ jobs:
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "DIFF<<$EOF" >> $GITHUB_ENV
           deck gateway diff --select-tag ${{ inputs.flag  }} \
-          .github/artifacts/${{ inputs.flag  }}/${{ inputs.flag  }}-kong.yaml \
+          .github/artifacts/${{ inputs.flag  }}-kong.yaml \
           --konnect-control-plane-name ${{ inputs.konnect_control_plane_name  }} \
           --konnect-token ${{ secrets.KONNECT_SYSTEM_ACCESS_TOKEN }} \
           --konnect-addr ${{ vars. KONNECT_SERVER_URL }}>> $GITHUB_ENV
