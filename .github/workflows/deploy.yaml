@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - '.github/artifacts/*.yaml'
+      - '.github/workflows/deploy.yaml'
+      
   workflow_dispatch:
     inputs:
       flag:
