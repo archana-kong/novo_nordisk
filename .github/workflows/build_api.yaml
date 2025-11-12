@@ -97,7 +97,7 @@ jobs:
 
       - name: Render Kong Configuration
         run: |
-          deck file render {{ env.API_PATH }}/.generated/kong.yaml --populate-env-vars  -o ${{ env.API_PATH }}/.generated/kong.yaml
+          deck file render ${{ env.API_PATH }}/.generated/kong.yaml --populate-env-vars  -o ${{ env.API_PATH }}/.generated/kong.yaml
 
       - name: Lint Kong Configuration
         run: |
