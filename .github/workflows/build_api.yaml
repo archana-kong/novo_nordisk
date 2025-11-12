@@ -91,12 +91,6 @@ jobs:
             fi
           done
           
-      - name: Add API Specific Patch
-        run: |
-          cat ${{ env.API_PATH }}/.generated/kong.yaml | \
-          deck file patch ${{ env.API_PATH }}/patches/patches.yaml \
-          --output-file ${{ env.API_PATH }}/.generated/kong.yaml
-
       - name: Add tags
         run: |
           cat ${{ env.API_PATH }}/.generated/kong.yaml | deck file add-tags ${{ inputs.flag  }} -o ${{ env.API_PATH }}/.generated/kong.yaml
