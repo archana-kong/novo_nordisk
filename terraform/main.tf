@@ -23,7 +23,7 @@ resource "konnect_gateway_control_plane" "kongair_internal_cp" {
     team = "kong-air-internal"
     generated_by =  "terraform"
   }
-  name = "KongAir_Internal1"
+  name = "KongAir_Internal"
 }
 resource "konnect_gateway_control_plane" "kongair_external_cp" {
   name = "KongAir_External"
