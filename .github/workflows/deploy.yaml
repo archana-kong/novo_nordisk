@@ -32,11 +32,34 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
+        
+      # Load the .env file and export variables into GitHub Actions env
+      - name: Load deploy inputs
+        id: load_env
+        run: |
+          echo "Loading deploy inputs from .github/deploy-inputs.env..."
+          if [ ! -f ".github/deploy-inputs.env" ]; then
+            echo "❌ No deploy-inputs.env found. Please ensure build workflow created it."
+            exit 1
+          fi
+
+          # Read variables from the file
+          while IFS='=' read -r key value; do
+            if [[ -n "$key" && -n "$value" ]]; then
+              echo "$key=$value" >> $GITHUB_ENV
+            fi
+          done < .github/deploy-inputs.env
+
+      # Debug — show values loaded
+      - name: Print loaded variables
+        run: |
+          echo "FLAG=${{ env.flag }}"
+          echo "KONNECT_CONTROL_PLANE_NAME=${{ env.konnect_control_plane_name }}"
+          
       - name: Check if file exists
         id: check_file
         run: |
-          if [ ! -f "${{vars.ARTIFACT_PATH}}" ]; then
+          if [ ! -f ".github/artifacts/${{ env.flag  }}-kong.yaml" ]; then
             echo "Artifact file not found! Stopping workflow.. Run the build workflow before deploy !"
             exit 1  
           else
