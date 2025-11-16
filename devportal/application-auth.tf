@@ -16,12 +16,5 @@ resource "konnect_application_auth_strategy" "azure-oidc-dcr" {
         credential_claim = ["appid"]
       }
     }
-    dcr_provider = {
-      id           = "6bd15c90-acac-4599-82ac-e442d1f73a47"
-      name         = "azure-dcr-provider"
-      display_name = "Azure Dynamic Client Registration"
-      provider_type = "azureAd"
-    }
-   
   }
 }
