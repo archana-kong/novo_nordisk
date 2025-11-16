@@ -46,3 +46,15 @@ jobs:
       run: terraform apply -auto-approve -input=false
       env:
         KONNECT_PAT: ${{ secrets.KONNECT_PAT }}
+
+    - name: Download tfstate
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-state
+        path: .
+
+    - name: Upload tfstate
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-state
+        path: ./devportal/terraform.tfstate
