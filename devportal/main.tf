@@ -54,14 +54,14 @@ resource "konnect_portal_favicon" "my_portal_favicon" {
   portal_id = konnect_portal.my_portal.id
 }
 
-resource "konnect_portal_custom_domain" "my_portal_custom_domain" {
-  enabled   = false
-  hostname  = "my.custom.domain"
-  portal_id = konnect_portal.my_portal.id
-  ssl = {
-    domain_verification_method = "http"
-  }
-}
+#resource "konnect_portal_custom_domain" "my_portal_custom_domain" {
+  #enabled   = false
+  #hostname  = "my.custom.domain"
+  #portal_id = konnect_portal.my_portal.id
+  #ssl = {
+    #domain_verification_method = "http"
+  #}
+#}
 
   # Create a new team in the Dev Portal
 resource "konnect_portal_team" "my_portal_platformteam" {
