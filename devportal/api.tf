@@ -49,6 +49,6 @@ resource "konnect_api_publication" "my_apipublication" {
   portal_id                  = konnect_portal.my_portal.id
   visibility                 = "private"
    auth_strategy_ids = [
-    konnect_application_auth_strategy.azure_oidc.id
+    konnect_application_auth_strategy.azure-oidc-dcr.id
   ]
 }
