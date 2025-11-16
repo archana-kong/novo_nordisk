@@ -1,0 +1,53 @@
+name: Terraform Kong Platform Ops
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'devportal/**'
+env:
+  TF_LOG: INFO
+  TF_VAR_konnect_personal_access_token: ${{ secrets.KONNECT_PAT }}
+  TF_VAR_server_url: "https://us.api.konghq.com"
+  TF_VAR_environment: "production"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
+
+    - name: Terraform Init
+      working-directory: ./terraform
+      run: terraform init
+
+    - name: Terraform Validate
+      working-directory: ./terraform
+      run: terraform validate
+
+    - name: Terraform Plan
+      working-directory: ./terraform
+      run: terraform plan -input=false
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
+      working-directory: ./terraform
+      run: terraform apply -auto-approve -input=false
+      env:
+        KONNECT_PAT: ${{ secrets.KONNECT_PAT }}
+
+    - name: Get token from Terraform output
+      id: get_token
+      run: |
+        terraform output -raw global_cp_viewer_token_value || echo "No outputs found!"
+        TOKEN=$(terraform output -raw global_cp_viewer_token_value)
+        echo "Token value: $TOKEN"        # prints in logs (unmasked)
+        echo "token=$TOKEN" >> $GITHUB_OUTPUT
