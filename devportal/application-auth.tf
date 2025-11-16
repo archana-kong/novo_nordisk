@@ -4,7 +4,7 @@
 #Create Auth stratergy
 resource "konnect_application_auth_strategy" "azure-oidc-dcr" {
   openid_connect = {
-    name = "Azure OIDC"
+    name = "azure-oidc-dcr"
     dcr_provider_id = "6bd15c90-acac-4599-82ac-e442d1f73a47"
     display_name = "Azure OIDC + DCR Strategy"
     strategy_type = "openid_connect"
