@@ -37,6 +37,10 @@ resource "konnect_api_implementation" "my_apiimplementation" {
       id               = "3b3598bb-eebe-4d78-9fc4-dba980709e07"
     }
   }
+   depends_on = [
+    konnect_api.my_api,
+    konnect_api_version.my_apiversion
+  ]
 }
 
 
@@ -50,5 +54,8 @@ resource "konnect_api_publication" "my_apipublication" {
   visibility                 = "private"
    auth_strategy_ids = [
     konnect_application_auth_strategy.azure-oidc-dcr.id
+  ]
+  depends_on = [
+    konnect_application_auth_strategy.azure-oidc-dcr
   ]
 }
