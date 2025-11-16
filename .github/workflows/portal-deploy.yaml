@@ -47,6 +47,11 @@ jobs:
       env:
         KONNECT_PAT: ${{ secrets.KONNECT_PAT }}
 
+    - name: Check if tfstate exists
+      run: |
+        ls -al .
+        cat terraform.tfstate || echo "No tfstate found"
+          
     - name: Download tfstate
       uses: actions/download-artifact@v4
       with:
