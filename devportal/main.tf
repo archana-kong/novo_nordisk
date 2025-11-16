@@ -8,9 +8,13 @@ resource "konnect_portal" "my_portal" {
   default_page_visibility              = "public"
   description                          = "DevPortal Automated"
   display_name                         = "NN DevPortal Automated"
-  force_destroy                        = "false"
+  default_application_auth_strategy_id = konnect_application_auth_strategy.azure-oidc-dcr.id
   name         = "NN-devportal-auto"
   rbac_enabled = true
+
+  depends_on = [
+    konnect_application_auth_strategy.azure-oidc-dcr
+  ]
 }
 
 resource "konnect_portal_snippet" "my_portal_snippet" {
